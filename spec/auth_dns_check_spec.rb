@@ -32,7 +32,7 @@ RSpec.describe AuthDnsCheck do
       end
     end
 
-    context "when overriding auth dns servers" do
+    context "when overriding a domain" do
       let(:domain) { "example.com" }
       let(:fqdn) { "host.#{domain}" }
       let(:auth1) { double(Resolv::DNS) }
@@ -40,6 +40,29 @@ RSpec.describe AuthDnsCheck do
       let(:overrides) { { domain => [ auth1, auth2 ] } }
 
       subject { described_class.client(overrides: overrides) }
+
+      context "with default" do
+        let(:auth3) { double(Resolv::DNS) }
+        let(:auth4) { double(Resolv::DNS) }
+        let(:overrides) { { domain => [ auth1, auth2 ], default: [ auth3, auth4 ] } }
+
+        it "queries domain overrides for the domain" do
+          expect(auth1).to receive(:getaddresses).with(fqdn).and_return([ip("127.0.0.1")])
+          expect(auth2).to receive(:getaddresses).with(fqdn).and_return([ip("127.0.0.1")])
+          expect(auth3).to_not receive(:getaddresses)
+          expect(auth4).to_not receive(:getaddresses)
+          subject.all?(fqdn)
+        end
+
+        it "queries default overrides for others" do
+          expect(auth1).to_not receive(:getaddresses)
+          expect(auth2).to_not receive(:getaddresses)
+          expect(auth3).to receive(:getaddresses).with("some.other-domain.com").and_return([ip("127.0.0.1")])
+          expect(auth4).to receive(:getaddresses).with("some.other-domain.com").and_return([ip("127.0.0.1")])
+          subject.all?("some.other-domain.com")
+        end
+
+      end
 
       it "is true if all authoritatives answer for fqdn" do
         expect(auth1).to receive(:getaddresses).with(fqdn).and_return([ip("127.0.0.1")])

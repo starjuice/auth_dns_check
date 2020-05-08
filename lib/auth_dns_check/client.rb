@@ -18,7 +18,7 @@ module AuthDnsCheck
 
     def authoritatives_for(fqdn)
       zone = fqdn.gsub(/\A[^.]+\./, '')
-      overridden_authoritatives_for(zone) || default_authoritatives_for(zone)
+      overridden_authoritatives_for(zone) || overridden_authoritatives_for(:default) || default_authoritatives_for(zone)
     end
 
     def overridden_authoritatives_for(zone)

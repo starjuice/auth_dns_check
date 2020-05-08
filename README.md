@@ -3,14 +3,12 @@
 Provides a client for checking that all authoritative DNS servers know
 about a record and agree on its value(s).
 
-Supports per-zone overrides for the set of authoritative DNS servers,
-for bypassing AnyCast arrangements.
+Supports global or per-zone overrides for the set of authoritative DNS
+servers, for bypassing AnyCast arrangements.
 
 Does not yet support records other than A records.
 
 Does not yet support IPv6.
-
-Does not yet support a default override for all zones.
 
 ## Installation
 
@@ -37,7 +35,7 @@ require "auth_dns_check"
 
 client = AuthDnsCheck.client(
   overrides: {
-    "peculiardomain.com" => [
+    :default => [
       Resolv::DNS.new(nameserver: "192.168.0.253"),
       Resolv::DNS.new(nameserver: "192.168.0.252"),
     ]
@@ -48,7 +46,7 @@ client = AuthDnsCheck.client(
 # 192.168.0.253 and 192.168.0.252 both know about and agree on
 # 4acf8ea915b7.peculiardomain.com.
 #
-client.all?("4acf8ea915b7.peculiardomain.com")
+client.all?("4acf8ea915b7.example.com")
 ```
 
 ## Development
