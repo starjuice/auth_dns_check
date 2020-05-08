@@ -5,7 +5,7 @@ RSpec.describe AuthDnsCheck do
     expect(AuthDnsCheck::VERSION).not_to be nil
   end
 
-  shared_examples_for "unimplemented" do
+  context "pending" do
     it "supports records of types other than A"
     it "supports subdomains"
     it "supports IPv6"
@@ -30,8 +30,6 @@ RSpec.describe AuthDnsCheck do
       it "ignores ordering of answers" do
         expect(subject.all?("multi-same.internal.domain")).to be true
       end
-
-      include_examples "unimplemented"
     end
 
     context "when overriding auth dns servers" do
@@ -66,8 +64,6 @@ RSpec.describe AuthDnsCheck do
         expect(auth2).to receive(:getaddresses).with(fqdn).and_return([ip("127.0.0.2"), ip("127.0.0.1")])
         expect(subject.all?(fqdn)).to be true
       end
-
-      include_examples "unimplemented"
     end
   end
 
