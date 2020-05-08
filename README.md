@@ -1,8 +1,16 @@
 # AuthDnsCheck
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/auth_dns_check`. To experiment with that code, run `bin/console` for an interactive prompt.
+Provides a client for checking that all authoritative DNS servers know
+about a record and agree on its value(s).
 
-TODO: Delete this and the text above, and describe your gem
+Supports per-zone overrides for the set of authoritative DNS servers,
+for bypassing AnyCast arrangements.
+
+Does not yet support records other than A records.
+
+Does not yet support IPv6.
+
+Does not yet support a default override for all zones.
 
 ## Installation
 
@@ -51,7 +59,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/auth_dns_check.
+Bug reports and pull requests are welcome on GitHub at https://github.com/starjuice/auth_dns_check.
 
 ## License
 
