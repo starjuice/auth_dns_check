@@ -22,7 +22,26 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+Example:
+
+```
+require "auth_dns_check"
+
+client = AuthDnsCheck.client(
+  overrides: {
+    "peculiardomain.com" => [
+      Resolv::DNS.new(nameserver: "192.168.0.253"),
+      Resolv::DNS.new(nameserver: "192.168.0.252"),
+    ]
+  }
+)
+
+# Ignore the NS records for peculiardomain.com and check that
+# 192.168.0.253 and 192.168.0.252 both know about and agree on
+# 4acf8ea915b7.peculiardomain.com.
+#
+client.all?("4acf8ea915b7.peculiardomain.com")
+```
 
 ## Development
 
