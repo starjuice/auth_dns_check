@@ -64,19 +64,19 @@ RSpec.describe AuthDnsCheck do
 
       end
 
-      it "is true if all authoritatives answer for fqdn" do
+      it "is true if all overrides answer for fqdn" do
         expect(auth1).to receive(:getaddresses).with(fqdn).and_return([ip("127.0.0.1")])
         expect(auth2).to receive(:getaddresses).with(fqdn).and_return([ip("127.0.0.1")])
         expect(subject.all?(fqdn)).to be true
       end
 
-      it "is false if two or more authoritatives disagree for fqdn" do
+      it "is false if two or more overrides disagree for fqdn" do
         expect(auth1).to receive(:getaddresses).with(fqdn).and_return([ip("127.0.0.1")])
         expect(auth2).to receive(:getaddresses).with(fqdn).and_return([ip("127.0.0.2")])
         expect(subject.all?(fqdn)).to be false
       end
 
-      it "is false if no authoritatives answer for fqdn" do
+      it "is false if no overrides answer for fqdn" do
         expect(auth1).to receive(:getaddresses).with(fqdn).and_return([])
         expect(auth2).to receive(:getaddresses).with(fqdn).and_return([])
         expect(subject.all?(fqdn)).to be false
