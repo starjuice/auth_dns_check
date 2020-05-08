@@ -10,6 +10,9 @@ services:
       DEFAULT_RESOLVER: 10.0.0.251
     networks:
       auth_dns_check:
+    depends_on:
+      - dns1
+      - dns2
   dns1:
     image: resystit/bind9
     volumes:
