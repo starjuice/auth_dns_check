@@ -44,9 +44,9 @@ client = AuthDnsCheck.client(
 
 # Ignore the NS records for peculiardomain.com and check that
 # 192.168.0.253 and 192.168.0.252 both know about and agree on
-# 4acf8ea915b7.peculiardomain.com.
+# newhost.peculiardomain.com.
 #
-client.all?("4acf8ea915b7.example.com")
+client.all?("newhost.peculiardomain.com")
 ```
 
 ## Development
