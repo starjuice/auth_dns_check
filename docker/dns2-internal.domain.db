@@ -1,0 +1,22 @@
+$ORIGIN internal.domain.
+$TTL 86400
+@	SOA	dns1.internal.domain.	hostmaster.internal.domain. (
+		2001062501 ; serial
+		21600      ; refresh after 6 hours
+		3600       ; retry after 1 hour
+		604800     ; expire after 1 week
+		86400 )    ; minimum TTL of 1 day
+;
+		NS	dns1
+		NS	dns2
+dns1		IN	A	10.0.0.251
+dns2		IN	A	10.0.0.252
+;
+same		IN	A	127.0.0.1
+different	IN	A	127.0.0.2
+;
+multi-same	IN	A	127.0.0.3
+multi-same	IN	A	127.0.0.1
+;
+multi-different	IN	A	127.0.0.3
+multi-different	IN	A	127.0.0.2

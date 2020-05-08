@@ -1,0 +1,36 @@
+version: '2.1'
+
+services:
+  test:
+    build:
+      context: .
+    volumes:
+      - .:/usr/src
+    environment:
+      DEFAULT_RESOLVER: 10.0.0.251
+    networks:
+      auth_dns_check:
+  dns1:
+    image: resystit/bind9
+    volumes:
+      - ./docker/named.conf:/etc/bind/named.conf
+      - ./docker/dns1-internal.domain.db:/etc/bind/internal.domain.db
+    networks:
+      auth_dns_check:
+        ipv4_address: 10.0.0.251
+  dns2:
+    image: resystit/bind9
+    volumes:
+      - ./docker/named.conf:/etc/bind/named.conf
+      - ./docker/dns2-internal.domain.db:/etc/bind/internal.domain.db
+    networks:
+      auth_dns_check:
+        ipv4_address: 10.0.0.252
+networks:
+  auth_dns_check:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.0.0.0/24
+

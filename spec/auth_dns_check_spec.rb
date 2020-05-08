@@ -1,9 +1,77 @@
+require "auth_dns_check"
+
 RSpec.describe AuthDnsCheck do
   it "has a version number" do
     expect(AuthDnsCheck::VERSION).not_to be nil
   end
 
-  it "does something useful" do
-    expect(false).to eq(true)
+  shared_examples_for "unimplemented" do
+    it "supports records of types other than A"
+    it "supports subdomains"
+    it "supports IPv6"
+  end
+
+  describe "all?(fqdn)" do
+    context "by default" do
+      subject { described_class.client(default: Resolv::DNS.new(nameserver: ENV.fetch("DEFAULT_RESOLVER"))) }
+
+      it "is true if all authoritatives answer for fqdn" do
+        expect(subject.all?("same.internal.domain")).to be true
+      end
+
+      it "is false if two or more authoritatives disagree for fqdn" do
+        expect(subject.all?("different.internal.domain")).to be false
+      end
+
+      it "is false if no authoritatives answer for fqdn" do
+        expect(subject.all?("missing.internal.domain")).to be false
+      end
+
+      it "ignores ordering of answers" do
+        expect(subject.all?("multi-same.internal.domain")).to be true
+      end
+
+      include_examples "unimplemented"
+    end
+
+    context "when overriding auth dns servers" do
+      let(:domain) { "example.com" }
+      let(:fqdn) { "host.#{domain}" }
+      let(:auth1) { double(Resolv::DNS) }
+      let(:auth2) { double(Resolv::DNS) }
+      let(:overrides) { { domain => [ auth1, auth2 ] } }
+
+      subject { described_class.client(overrides: overrides) }
+
+      it "is true if all authoritatives answer for fqdn" do
+        expect(auth1).to receive(:getaddresses).with(fqdn).and_return([ip("127.0.0.1")])
+        expect(auth2).to receive(:getaddresses).with(fqdn).and_return([ip("127.0.0.1")])
+        expect(subject.all?(fqdn)).to be true
+      end
+
+      it "is false if two or more authoritatives disagree for fqdn" do
+        expect(auth1).to receive(:getaddresses).with(fqdn).and_return([ip("127.0.0.1")])
+        expect(auth2).to receive(:getaddresses).with(fqdn).and_return([ip("127.0.0.2")])
+        expect(subject.all?(fqdn)).to be false
+      end
+
+      it "is false if no authoritatives answer for fqdn" do
+        expect(auth1).to receive(:getaddresses).with(fqdn).and_return([])
+        expect(auth2).to receive(:getaddresses).with(fqdn).and_return([])
+        expect(subject.all?(fqdn)).to be false
+      end
+
+      it "ignores ordering of answers" do
+        expect(auth1).to receive(:getaddresses).with(fqdn).and_return([ip("127.0.0.1"), ip("127.0.0.2")])
+        expect(auth2).to receive(:getaddresses).with(fqdn).and_return([ip("127.0.0.2"), ip("127.0.0.1")])
+        expect(subject.all?(fqdn)).to be true
+      end
+
+      include_examples "unimplemented"
+    end
+  end
+
+  def ip(s)
+    Resolv::IPv4.create(s)
   end
 end
