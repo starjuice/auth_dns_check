@@ -1,17 +1,45 @@
 module AuthDnsCheck
 
+  # Client for performing authoritative DNS checks
+  #
+  # @todo IPv6 not supported
   class Client
 
-    def initialize(overrides: {}, default: Resolv::DNS.new)
+    # authoritative name server overrides
+    attr_reader :overrides
+
+    # default resolver for finding authoritative name servers
+    attr_reader :default
+
+    # Initialize a new Client
+    #
+    # @param overrides [Hash<String,Array<Resolv::DNS>>] authoritative name server overrides.
+    #   Maps domain names to lists of name servers that should override those published for the domain.
+    #   The special domain name {Symbol} +:default+ may list the name servers that should override any other domain.
+    # @param default [Resolv::DNS] default resolver for finding authoritative name servers.
+    #   Note that this is not the same as +overrides[:default]+.
+    def initialize(overrides: {}, default: Resolv::DNS.new("/etc/resolv.conf"))
       @overrides = overrides
       @default = default
     end
 
+    # Check authoritative agreement for a name
+    #
+    # @param fqdn [String] the name to check
+    # @return [Boolean] whether all authoritative agree that +fqdn+ has the same non-empty set of records
+    # @raise [Error] if authoritative name servers could not be found
+    # @todo Records of types other than A not yet supported
     def all?(fqdn)
       answers = get_addresses(fqdn)
       answers.all? { |x| x.any? and x == answers.first }
     end
 
+    # Check authoritative agreement for the specific address for a name
+    #
+    # @param fqdn [String] the name to check
+    # @param ip [String] the expected address
+    # @return [Boolean] whether all authoritative name servers agree that the only address of +name+ is +ip+
+    # @raise [Error] if authoritative name servers could not be found
     def has_ip?(fqdn, ip)
       answers = get_addresses(fqdn)
       answers.all? do |x|

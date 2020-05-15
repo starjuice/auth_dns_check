@@ -1,3 +1,5 @@
+[![Gem](https://img.shields.io/gem/v/auth_dns_check.svg?style=flat)](https://rubygems.org/gems/auth_dns_check "View this project in Rubygems")
+
 # AuthDnsCheck
 
 Provides a client for checking that all authoritative DNS servers know
@@ -26,6 +28,10 @@ Or install it yourself as:
 
     $ gem install auth_dns_check
 
+## Documentation
+
+Full API documentation is available on [rubydoc.info](https://www.rubydoc.info/gems/auth_dns_check).
+
 ## Usage
 
 Example:
@@ -37,14 +43,14 @@ require "auth_dns_check"
 # agree that changed.peculiardomain.com has the address 192.168.1.1
 # and no other addresses.
 #
-client = AuthDnsCheck.client
+client = AuthDnsCheck::Client.new
 client.has_ip?("changed.peculiardomain.com", "192.168.1.1")
 
 # Ignore the NS records for peculiardomain.com and check that
 # 192.168.0.253 and 192.168.0.252 both know about and agree on
 # any and all records for newhost.peculiardomain.com.
 #
-client = AuthDnsCheck.client(
+client = AuthDnsCheck::Client.new(
   overrides: {
     :default => [
       Resolv::DNS.new(nameserver: "192.168.0.253"),
@@ -57,7 +63,17 @@ client.all?("newhost.peculiardomain.com")
 
 ## Development
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+After checking out the repo, run `bin/setup` to install dependencies. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+
+Note that `rake spec` does not work. The tests rely on a pair of name servers configured with fixtures.
+
+To run the tests:
+
+```
+docker-compose down --volumes --remove-orphans && \
+  docker-compose build test && \
+  docker-compose run test
+```
 
 To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
 
