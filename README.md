@@ -1,4 +1,5 @@
 [![Gem](https://img.shields.io/gem/v/auth_dns_check.svg?style=flat)](https://rubygems.org/gems/auth_dns_check "View this project in Rubygems")
+[![CI](https://travis-ci.org/starjuice/auth_dns_check.svg?branch=master)](https://travis-ci.org/github/starjuice/auth_dns_check "View this project in Travis CI")
 
 # AuthDnsCheck
 
