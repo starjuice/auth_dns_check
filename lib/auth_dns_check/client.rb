@@ -8,13 +8,30 @@ module AuthDnsCheck
     end
 
     def all?(fqdn)
-      answers = authoritatives_for(fqdn).
-        map { |x| x.getaddresses(fqdn) }.
-        map { |x| x.collect(&:to_s).sort }
+      answers = get_addresses(fqdn)
       answers.all? { |x| x.any? and x == answers.first }
     end
 
+    def has_ip?(fqdn, ip)
+      answers = get_addresses(fqdn)
+      answers.all? do |x|
+        x.any? and x.all? { |i| i == ip }
+      end
+    end
+
     private
+
+    def get_addresses(fqdn)
+      get_authoritatives(fqdn).
+        map { |x| x.getaddresses(fqdn) }.
+        map { |x| x.collect(&:to_s).sort }
+    end
+
+    def get_authoritatives(fqdn)
+      authoritatives_for(fqdn).tap do |auths|
+        auths.any? or raise(Error, "no name servers found for #{fqdn}")
+      end
+    end
 
     def authoritatives_for(fqdn)
       zone = fqdn.gsub(/\A[^.]+\./, '')

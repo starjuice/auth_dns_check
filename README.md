@@ -33,6 +33,17 @@ Example:
 ```
 require "auth_dns_check"
 
+# Check that the authoritative name servers for peculiardomain.com
+# agree that changed.peculiardomain.com has the address 192.168.1.1
+# and no other addresses.
+#
+client = AuthDnsCheck.client
+client.has_ip?("changed.peculiardomain.com", "192.168.1.1")
+
+# Ignore the NS records for peculiardomain.com and check that
+# 192.168.0.253 and 192.168.0.252 both know about and agree on
+# any and all records for newhost.peculiardomain.com.
+#
 client = AuthDnsCheck.client(
   overrides: {
     :default => [
@@ -41,11 +52,6 @@ client = AuthDnsCheck.client(
     ]
   }
 )
-
-# Ignore the NS records for peculiardomain.com and check that
-# 192.168.0.253 and 192.168.0.252 both know about and agree on
-# newhost.peculiardomain.com.
-#
 client.all?("newhost.peculiardomain.com")
 ```
 

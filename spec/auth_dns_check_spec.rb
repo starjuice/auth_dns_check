@@ -27,6 +27,12 @@ RSpec.describe AuthDnsCheck do
         expect(subject.all?("missing.internal.domain")).to be false
       end
 
+      it "raises an Error if no authoritatives can be found" do
+        expect {
+          subject.all?("nonexistent.domain")
+        }.to raise_error(AuthDnsCheck::Error, "no name servers found for nonexistent.domain")
+      end
+
       it "ignores ordering of answers" do
         expect(subject.all?("multi-same.internal.domain")).to be true
       end
@@ -87,6 +93,32 @@ RSpec.describe AuthDnsCheck do
         expect(auth2).to receive(:getaddresses).with(fqdn).and_return([ip("127.0.0.2"), ip("127.0.0.1")])
         expect(subject.all?(fqdn)).to be true
       end
+    end
+  end
+
+  describe "has_ip?(fqdn, ip)" do
+    subject { described_class.client(default: Resolv::DNS.new(nameserver: ENV.fetch("DEFAULT_RESOLVER"))) }
+
+    it "is true if all authoritatives give ip for fqdn" do
+      expect(subject.has_ip?("same.internal.domain", "127.0.0.1")).to be true
+    end
+
+    it "is false if two or more authoritatives disagree on ip for fqdn" do
+      expect(subject.has_ip?("different.internal.domain", "127.0.0.1")).to be false
+    end
+
+    it "is false if no authoritatives give ip for fqdn" do
+      expect(subject.has_ip?("missing.internal.domain", "127.0.0.1")).to be false
+    end
+
+    it "is false if one or more authoritatives gives any other ip for fqdn" do
+      expect(subject.has_ip?("multi-same.internal.domain", "127.0.0.1")).to be false
+    end
+
+    it "raises an Error if no authoritatives can be found" do
+      expect {
+        subject.all?("nonexistent.domain")
+      }.to raise_error(AuthDnsCheck::Error, "no name servers found for nonexistent.domain")
     end
   end
 
