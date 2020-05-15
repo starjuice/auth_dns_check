@@ -28,13 +28,25 @@ module AuthDnsCheck
     end
 
     def get_authoritatives(fqdn)
-      authoritatives_for(fqdn).tap do |auths|
-        auths.any? or raise(Error, "no name servers found for #{fqdn}")
+      find_zone(fqdn) { |zone| overridden_authoritatives_for(zone) } or
+        overridden_authoritatives_for(:default) or
+        find_zone(fqdn) { |zone| default_authoritatives_for(zone) } or
+        raise Error.new("no name servers found for #{fqdn}")
+    end
+
+    def find_zone(fqdn)
+      zone = fqdn
+      while zone
+        auths = yield(zone)
+        if auths and auths.any?
+          break auths
+        else
+          _, zone = zone.split(".", 2)
+        end
       end
     end
 
-    def authoritatives_for(fqdn)
-      zone = fqdn.gsub(/\A[^.]+\./, '')
+    def authoritatives_for(zone)
       overridden_authoritatives_for(zone) || overridden_authoritatives_for(:default) || default_authoritatives_for(zone)
     end
 

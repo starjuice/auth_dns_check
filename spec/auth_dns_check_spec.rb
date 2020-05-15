@@ -7,7 +7,6 @@ RSpec.describe AuthDnsCheck do
 
   context "pending" do
     it "supports records of types other than A"
-    it "supports subdomains"
     it "supports IPv6"
   end
 
@@ -116,6 +115,28 @@ RSpec.describe AuthDnsCheck do
     end
 
     it "raises an Error if no authoritatives can be found" do
+      expect {
+        subject.all?("nonexistent.domain")
+      }.to raise_error(AuthDnsCheck::Error, "no name servers found for nonexistent.domain")
+    end
+  end
+
+  describe "zone finding" do
+    subject { described_class.client(default: Resolv::DNS.new(nameserver: ENV.fetch("DEFAULT_RESOLVER"))) }
+
+    it "finds authoritatives when fqdn is the zone" do
+      expect(subject.has_ip?("same.internal.domain", "127.0.0.1")).to be true
+    end
+
+    it "finds authoritatives when fqdn is a single-component record in the zone" do
+      expect(subject.has_ip?("same.internal.domain", "127.0.0.1")).to be true
+    end
+
+    it "finds authoritatives when fqdn is a multi-component record in the zone" do
+      expect(subject.has_ip?("same.dotted.internal.domain", "127.0.0.1")).to be true
+    end
+
+    it "raises an error if no authoritatives can be found" do
       expect {
         subject.all?("nonexistent.domain")
       }.to raise_error(AuthDnsCheck::Error, "no name servers found for nonexistent.domain")

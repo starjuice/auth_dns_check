@@ -9,8 +9,11 @@ $TTL 86400
 ;
 		NS	dns1
 		NS	dns2
+;
 dns1		IN	A	10.0.0.251
 dns2		IN	A	10.0.0.252
+;
+@		IN	A	127.0.0.1
 ;
 same		IN	A	127.0.0.1
 different	IN	A	127.0.0.1
@@ -20,3 +23,5 @@ multi-same	IN	A	127.0.0.3
 ;
 multi-different	IN	A	127.0.0.1
 multi-different	IN	A	127.0.0.3
+;
+same.dotted	IN	A	127.0.0.1
