@@ -31,6 +31,22 @@ RSpec.describe AuthDnsCheck::Client do
       it "ignores ordering of answers" do
         expect(subject.all?("multi-same.internal.domain")).to be true
       end
+
+      context "specifying record type" do
+
+        it "is true if all authoritatives answer for fqdn" do
+          expect(subject.all?("mixed-same.internal.domain", types: ["A"])).to be true
+        end
+
+        it "is false if two or more authoritatives disagree for fqdn" do
+          expect(subject.all?("mixed-different.internal.domain", types: ["TXT"])).to be false
+        end
+
+        it "is false if no authoritatives answer for fqdn" do
+          expect(subject.all?("mixed-different.internal.domain", types: ["NS"])).to be false
+        end
+
+      end
     end
 
     context "when overriding a domain" do
@@ -48,44 +64,44 @@ RSpec.describe AuthDnsCheck::Client do
         let(:overrides) { { domain => [ auth1, auth2 ], default: [ auth3, auth4 ] } }
 
         it "queries domain overrides for the domain" do
-          expect(auth1).to receive(:getaddresses).with(fqdn).and_return([ip("127.0.0.1")])
-          expect(auth2).to receive(:getaddresses).with(fqdn).and_return([ip("127.0.0.1")])
-          expect(auth3).to_not receive(:getaddresses)
-          expect(auth4).to_not receive(:getaddresses)
+          expect(auth1).to receive(:getresources).with(fqdn, IN::A).and_return([ip("127.0.0.1")])
+          expect(auth2).to receive(:getresources).with(fqdn, IN::A).and_return([ip("127.0.0.1")])
+          expect(auth3).to_not receive(:getresources)
+          expect(auth4).to_not receive(:getresources)
           subject.all?(fqdn)
         end
 
         it "queries default overrides for others" do
-          expect(auth1).to_not receive(:getaddresses)
-          expect(auth2).to_not receive(:getaddresses)
-          expect(auth3).to receive(:getaddresses).with("some.other-domain.com").and_return([ip("127.0.0.1")])
-          expect(auth4).to receive(:getaddresses).with("some.other-domain.com").and_return([ip("127.0.0.1")])
+          expect(auth1).to_not receive(:getresources)
+          expect(auth2).to_not receive(:getresources)
+          expect(auth3).to receive(:getresources).with("some.other-domain.com", IN::A).and_return([ip("127.0.0.1")])
+          expect(auth4).to receive(:getresources).with("some.other-domain.com", IN::A).and_return([ip("127.0.0.1")])
           subject.all?("some.other-domain.com")
         end
 
       end
 
       it "is true if all overrides answer for fqdn" do
-        expect(auth1).to receive(:getaddresses).with(fqdn).and_return([ip("127.0.0.1")])
-        expect(auth2).to receive(:getaddresses).with(fqdn).and_return([ip("127.0.0.1")])
+        expect(auth1).to receive(:getresources).with(fqdn, IN::A).and_return([ip("127.0.0.1")])
+        expect(auth2).to receive(:getresources).with(fqdn, IN::A).and_return([ip("127.0.0.1")])
         expect(subject.all?(fqdn)).to be true
       end
 
       it "is false if two or more overrides disagree for fqdn" do
-        expect(auth1).to receive(:getaddresses).with(fqdn).and_return([ip("127.0.0.1")])
-        expect(auth2).to receive(:getaddresses).with(fqdn).and_return([ip("127.0.0.2")])
+        expect(auth1).to receive(:getresources).with(fqdn, IN::A).and_return([ip("127.0.0.1")])
+        expect(auth2).to receive(:getresources).with(fqdn, IN::A).and_return([ip("127.0.0.2")])
         expect(subject.all?(fqdn)).to be false
       end
 
       it "is false if no overrides answer for fqdn" do
-        expect(auth1).to receive(:getaddresses).with(fqdn).and_return([])
-        expect(auth2).to receive(:getaddresses).with(fqdn).and_return([])
+        expect(auth1).to receive(:getresources).with(fqdn, IN::A).and_return([])
+        expect(auth2).to receive(:getresources).with(fqdn, IN::A).and_return([])
         expect(subject.all?(fqdn)).to be false
       end
 
       it "ignores ordering of answers" do
-        expect(auth1).to receive(:getaddresses).with(fqdn).and_return([ip("127.0.0.1"), ip("127.0.0.2")])
-        expect(auth2).to receive(:getaddresses).with(fqdn).and_return([ip("127.0.0.2"), ip("127.0.0.1")])
+        expect(auth1).to receive(:getresources).with(fqdn, IN::A).and_return([ip("127.0.0.1"), ip("127.0.0.2")])
+        expect(auth2).to receive(:getresources).with(fqdn, IN::A).and_return([ip("127.0.0.2"), ip("127.0.0.1")])
         expect(subject.all?(fqdn)).to be true
       end
     end
@@ -137,6 +153,10 @@ RSpec.describe AuthDnsCheck::Client do
         subject.all?("nonexistent.domain")
       }.to raise_error(AuthDnsCheck::Error, "no name servers found for nonexistent.domain")
     end
+  end
+
+  module IN
+    include Resolv::DNS::Resource::IN
   end
 
   def ip(s)

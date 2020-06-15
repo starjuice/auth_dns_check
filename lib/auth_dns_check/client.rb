@@ -5,6 +5,9 @@ module AuthDnsCheck
   # @todo IPv6 not supported
   class Client
 
+    # Default record types for checks like +all?+
+    DEFAULT_TYPES = ["A"] unless defined?(DEFAULT_TYPES)
+
     # authoritative name server overrides
     attr_reader :overrides
 
@@ -29,9 +32,15 @@ module AuthDnsCheck
     # @return [Boolean] whether all authoritative agree that +fqdn+ has the same non-empty set of records
     # @raise [Error] if authoritative name servers could not be found
     # @todo Records of types other than A not yet supported
-    def all?(fqdn)
-      answers = get_addresses(fqdn)
-      answers.all? { |x| x.any? and x == answers.first }
+    def all?(fqdn, types: DEFAULT_TYPES)
+      non_empty_set = false
+      types.all? { |type|
+        resources = get_resources(fqdn, type: type)
+        resources.all? do |x|
+          non_empty_set = true unless x.empty?
+          x == resources.first
+        end
+      } && non_empty_set
     end
 
     # Check authoritative agreement for the specific address for a name
@@ -48,6 +57,24 @@ module AuthDnsCheck
     end
 
     private
+
+    def get_resources(fqdn, type:)
+      type_class = Resolv::DNS::Resource::IN::const_get(type)
+      get_authoritatives(fqdn).
+        map { |x| x.getresources(fqdn, type_class) }.
+        map { |x| x.collect { |r| resource_to_s(r, type) }.sort }
+    end
+
+    def resource_to_s(r, type)
+      case type
+      when "A"
+        r.address.to_s
+      when "TXT"
+        r.data
+      else
+        raise "unsupported record type #{type}"
+      end
+    end
 
     def get_addresses(fqdn)
       get_authoritatives(fqdn).

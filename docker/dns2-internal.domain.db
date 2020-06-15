@@ -25,3 +25,9 @@ multi-different	IN	A	127.0.0.3
 multi-different	IN	A	127.0.0.2
 ;
 same.dotted	IN	A	127.0.0.1
+;
+mixed-same	IN	A	127.0.0.1
+mixed-same	IN	TXT	"some text"
+;
+mixed-different	IN	A	127.0.0.1
+mixed-different	IN	TXT	"other text"
